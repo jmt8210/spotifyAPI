@@ -1,0 +1,15 @@
+<html>
+    <button id="b">Sign in</button>
+    <script>
+        document.getElementById('b').addEventListener('click', function(){
+            var client_id = '62f9ac81bdea4990a7512556450c2e44';
+            var client_secret = '717a27718a7a41db8c41d59ee4745852';
+            var redirect_uri = 'http://localhost:8888';
+            var url = 'https://accounts.spotify.com/authorize';
+            url += "?response_type=token";
+            url += "&client_id=" + encodeURIComponent(client_id);
+            url += "&redirect_uri=" + encodeURIComponent(redirect_uri);
+            window.location = url;
+        }, false);
+    </script>
+</html>
