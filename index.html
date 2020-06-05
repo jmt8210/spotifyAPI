@@ -1,15 +1,40 @@
 <html>
+   <head>
+      <title>SpotiFriends</title> 
+   </head>
     <button id="b">Sign in</button>
     <script>
+       var signedIn = false;
+       var playerEndpoint = 'https://api.spotify.com/v1/me/player'
+       var xhr = new XMLHttpRequest();
+       xhr.setRequestHeader();
+       xhr.setRequestHeader();
+       xhr.setRequestHeader();
+       xhr.setRequestHeader();
+       xhr.setRequestHeader();
+       xhr.open("GET", playerEndpoint);
+       xhr.send();
+       xhr.onload = function(){
+        console.log(xhr);
+          if(xhr.status === 200){
+             console.log(JSON.parse(xhr.response));
+          }else{
+             console.log("Error" + xhr.status + xhr.statusText);
+          }
+       }
         document.getElementById('b').addEventListener('click', function(){
-            var client_id = '';
+           var playerEndpoint = 'https://api.spotify.com/v1/me/player/queue'
+            var client_id = '62f9ac81bdea4990a7512556450c2e44';
             var client_secret = '';
-            var redirect_uri = 'http://localhost:8888';
+
+           //Consider different redirect to ensure authorization
+            var redirect_uri = 'http://localhost:8080';
             var url = 'https://accounts.spotify.com/authorize';
             url += "?response_type=token";
             url += "&client_id=" + encodeURIComponent(client_id);
             url += "&redirect_uri=" + encodeURIComponent(redirect_uri);
             window.location = url;
+            signedIn = true;
         }, false);
     </script>
 </html>

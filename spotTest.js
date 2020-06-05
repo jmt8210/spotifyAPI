@@ -7,6 +7,6 @@ fs.readFile('./index.html', function(err, html){
         response.writeHead(200, {"Content-Type": "text/html"});
         response.write(html);
         response.end();
-    }).listen(8888);
+    }).listen(8080);
 });
 
