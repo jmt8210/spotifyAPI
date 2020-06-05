@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
   <head>
-    <title>Example of the Implicit Grant flow with Spotify</title>
+    <title>SpotiFriend</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <style type="text/css">
-      #login, #loggedin, #songinfo {
+      #login, #loggedin, #song {
         display: none;
       }
       .text-overflow {
@@ -28,7 +28,11 @@
         <div id="oauth">
         </div>
       </div>
-      <div id="songinfo">
+      <div id="song">
+        <div id="songinfo">
+        </div>
+        <h1>Test </h1>
+        <button id="songinfo-button" class="btn btn-primary">Click me</button>
       </div>
     </div>
 
@@ -58,6 +62,15 @@
         <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
       </dl>
     </script>
+
+    <script id="following-template" type="text/x-handlebars-template">
+      <h2>Following List</h2>
+      <ul class="dl-horizontal">
+        {{#each people}}
+        <li><a onClick="">{{name}}</a></li>
+        {{/each}}
+      </ul>
+    </script>
     
 
     <script id="songinfo-template" type="text/x-handlebars-template">
@@ -67,6 +80,7 @@
         <dt>Artist</dt><dd class="text-overflow">{{item.artists.0.name}}</dd>
         <dt>Time</dt><dd class="text-overflow">{{formatMilliToMinuteSecond progress_ms}}</dd>
       </dl>
+      
     </script>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
@@ -123,6 +137,10 @@
             oauthTemplate = Handlebars.compile(oauthSource),
             oauthPlaceholder = document.getElementById('oauth');
 
+            followingSource = document.getElementById('following-template').innerHTML,
+            followingTemplate = Handlebars.compile(followingSource),
+            followingPlaceholder = document.getElementById('following');
+
             songinfoSource = document.getElementById('songinfo-template').innerHTML,
             songinfoTemplate = Handlebars.compile(songinfoSource),
             songinfoPlaceholder = document.getElementById('songinfo');
@@ -147,9 +165,19 @@
                 userProfilePlaceholder.innerHTML = userProfileTemplate(response);
                 $('#login').hide();
                 $('#loggedin').hide(); //.show();
-
+                $('#song').show();
               }
             });
+            // Get following
+            // $.ajax({
+            //     url: 'https://api.spotify.com/v1/me/following?type=user',
+            //     headers: {
+            //       'Authorization': 'Bearer ' + access_token
+            //     },
+            //     success: function(response) {
+            //       console.log(response);
+            //     }
+            //   });
             getSongInfo();
             function getSongInfo(){
               $.ajax({
@@ -158,18 +186,55 @@
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-                  console.log(response);
+                  //console.log(response);
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
                   setTimeout(getSongInfo, 100);
-                  $('#songinfo').show();
                 }
               });
             }
+            
           } else {
               $('#login').show();
               $('#loggedin').hide();
-              $('#songinfo').hide();
+              $('#song').hide();
           }
+          
+          document.getElementById('songinfo-button').addEventListener('click', function(){
+            // Put song in queue
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/queue?uri=' + /*URI*/ 'spotify:track:6pxElwU80zhjbCC77Vn8EI',
+              type: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
+            // Play next song 
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/next',
+              type: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
+            // Skip to milli
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + /*offset milli int*/'75000',
+              type: 'PUT',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
+
+          }, false);
 
           document.getElementById('login-button').addEventListener('click', function() {
 
@@ -179,7 +244,7 @@
             var state = generateRandomString(16);
 
             localStorage.setItem(stateKey, state);
-            var scope = 'user-read-private user-read-email user-follow-read user-read-playback-state streaming';
+            var scope = 'user-read-private user-read-email user-follow-read user-read-playback-state user-modify-playback-state';
 
             var url = 'https://accounts.spotify.com/authorize';
             url += '?response_type=token';
