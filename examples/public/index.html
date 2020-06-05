@@ -64,6 +64,7 @@
       <h2>Current Song Info</h2>
       <dl class="dl-horizonatal">
         <dt>Song</dt><dd class="text-overflow">{{item.name}}</dd>
+        <dt>Artist</dt><dd class="text-overflow">{{item.artists.0.name}}</dd>
         <dt>Time</dt><dd class="text-overflow">{{formatMilliToMinuteSecond progress_ms}}</dd>
       </dl>
     </script>
@@ -108,6 +109,9 @@
         Handlebars.registerHelper('formatMilliToMinuteSecond', function(value) {
           var minutes = parseInt(value/60000);;
           var seconds = parseInt((value-minutes*60000)/1000);
+          if(seconds < 10){
+            seconds = "0" + seconds;
+          }
           return '' + minutes + ":" + seconds;
         });
 
@@ -135,29 +139,32 @@
           localStorage.removeItem(stateKey);
           if (access_token) {
             $.ajax({
-                url: 'https://api.spotify.com/v1/me',
+              url: 'https://api.spotify.com/v1/me',
+              headers: {
+                'Authorization': 'Bearer ' + access_token
+              },
+              success: function(response) {
+                userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                $('#login').hide();
+                $('#loggedin').hide(); //.show();
+
+              }
+            });
+            getSongInfo();
+            function getSongInfo(){
+              $.ajax({
+                url: 'https://api.spotify.com/v1/me/player',
                 headers: {
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-                  userProfilePlaceholder.innerHTML = userProfileTemplate(response);
-                  $('#login').hide();
-                  $('#loggedin').hide(); //.show();
-
-                }
-            });
-            $.ajax({
-                url: 'https://api.spotify.com/v1/me/player',
-                headers: {
-                  'Authorization': 'Bearer BQADjvfNOqKdIr1zILaJu0EPeSS7VqfcYq7fFtKgRYSc27bl62jN750_QqnkxGH7Yy0NBdVxo_yhW0VqT3R-v-pjEEwBdFquRlS6u0kJOSpzQUjaYmkN4GdTUJAgpcH_vzlhkneZQlVGopQ7Pv3bAROP7Q'
-                },
-                success: function(response) {
                   console.log(response);
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
-
+                  setTimeout(getSongInfo, 100);
                   $('#songinfo').show();
                 }
-            });
+              });
+            }
           } else {
               $('#login').show();
               $('#loggedin').hide();
@@ -172,7 +179,7 @@
             var state = generateRandomString(16);
 
             localStorage.setItem(stateKey, state);
-            var scope = 'user-read-private user-read-email';
+            var scope = 'user-read-private user-read-email user-follow-read user-read-playback-state streaming';
 
             var url = 'https://accounts.spotify.com/authorize';
             url += '?response_type=token';
