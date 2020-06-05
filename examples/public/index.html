@@ -58,18 +58,9 @@
         <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
       </dl>
     </script>
-
-    <script>
-      
-    </script>
     
 
     <script id="songinfo-template" type="text/x-handlebars-template">
-      Handlebars.registerHelper('formatMilliToMinuteSecond', function(value) {
-        var minutes = int(value/60000);;
-        var seconds = int((minutes*60000-value)/10000);
-        return '' + minutes + ":" + seconds;
-      });
       <h2>Current Song Info</h2>
       <dl class="dl-horizonatal">
         <dt>Song</dt><dd class="text-overflow">{{item.name}}</dd>
@@ -112,6 +103,13 @@
           }
           return text;
         };
+
+        // Formating for time with handlebars
+        Handlebars.registerHelper('formatMilliToMinuteSecond', function(value) {
+          var minutes = parseInt(value/60000);;
+          var seconds = parseInt((value-minutes*60000)/1000);
+          return '' + minutes + ":" + seconds;
+        });
 
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
             userProfileTemplate = Handlebars.compile(userProfileSource),
