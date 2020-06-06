@@ -25,7 +25,7 @@
     </div>
     <div class="container">
       <div id="login">
-        <h1>This is an example of the Implicit Grant flow</h1>
+        <h1>Authentication</h1>
         <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
       </div>
       <div id="loggedin">
@@ -42,7 +42,6 @@
         <!-- Next button -->
       </div>
       <div id="queue">
-
       </div>
       <div id="search">
         <div id="songsearch">
@@ -94,6 +93,32 @@
         {{/each}}
       </ul>
     </script>
+
+    <script id="queue-template" type="text/x-handlebars-template">
+      <h2>Queue</h2>
+      <table class=table>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Title</th>
+          <th scope="col">Aritst</th>
+          <th scope="col">Album</th>
+          <th scope="col">Artwork</th>
+          <th scope="col">Length</th>
+        </tr>
+        {{#each items}}
+        <tr>
+          <td>{{position}}</td>
+          <td>{{songTitle}}</td>
+          <td>{{artistName}}</td>
+          <td>{{albumName}}</td>
+          <td><img src="{{albumImage}}" width=50/></td>
+          <td>{{time}}</td>
+        </tr>
+        {{/each}}
+      </table>
+      
+
+    </script>
     
 
     <script id="songinfo-template" type="text/x-handlebars-template">
@@ -114,7 +139,7 @@
     <script id="songsearch-template" type="text/x-handlebars-template">
       <h1>Add to Queue</h1>
       <input id="query-field" type="text">
-      <button onclick="{{query}}" id="songsearch-button" class="btn btn-primary">Search</button>
+      <button id="songsearch-button" class="btn btn-primary">Search</button>
     </script>
 
     <script id="query-template" type="text/x-handlebars-template">
@@ -134,16 +159,20 @@
           <td>{{album.name}}</td>
           <td><img src="{{album.images.[0].url}}" width=50/></td>
           <td>{{formatMilliToMinuteSecond duration_ms}}</td>
-          <td><button onclick="addToQueue({{json uri}})">Add to Queue</button></td>
+          <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
+        
       </table>
     </script>
-
     
     <script>
       var addToQueue;
       var previousSong;
+      var queue = {
+        items: []
+      };
+      var queueLength = 0;
       (function() {
 
         var stateKey = 'spotify_auth_state';
@@ -177,28 +206,18 @@
           return text;
         };
 
-        // To be called by button
-        addToQueue = function(uri){
-          // Ajax calls need to be nested because they are asynchronous
-          // Put song in queue
-          $.ajax({
-            url: 'https://api.spotify.com/v1/me/player/queue?uri=' + uri,
-            type: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + access_token,
-            },
-            success: function(response) {
-            }
-          });
-        };
+
+        Handlebars.registerHelper('json', function(context) {
+          return JSON.stringify(context).replace(/"/g, '\"');
+        });
+
+        
+
 
         previousSong = function(){
           // Put ajax call
         }
 
-        Handlebars.registerHelper('json', function(context) {
-            return JSON.stringify(context).replace(/"/g, '\"');
-        });
 
 
         // Formating for time with handlebars
@@ -210,22 +229,15 @@
           }
           return '' + minutes + ":" + seconds;
         });
-
-        // To be called by button
-        Handlebars.registerHelper('addToQueue', function(uri){
-          
-          // Ajax calls need to be nested because they are asynchronous
-          // Put song in queue
-          $.ajax({
-            url: 'https://api.spotify.com/v1/me/player/queue?uri=' + uri,
-            type: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + access_token,
-            },
-            success: function(response) {
-              console.log(response);
-            }
-          });
+        // Formating for time with handlebars
+        Handlebars.registerHelper('formatTimeQueue', function(value) {
+          var minutes = parseInt(value/60000);;
+          var seconds = parseInt((value-minutes*60000)/1000);
+          if(seconds < 10){
+            seconds = "0" + seconds;
+          }
+          var out = '' + minutes + ":" + seconds;
+          return JSON.stringify(out).replace(/"/g, '\"');;
         });
 
         // Play next song 
@@ -284,11 +296,41 @@
             queryTemplate = Handlebars.compile(querySource),
             queryPlaceholder = document.getElementById('query');
 
+            queueSource = document.getElementById('queue-template').innerHTML,
+            queueTemplate = Handlebars.compile(queueSource),
+            queuePlaceholder = document.getElementById('queue');
+
         var params = getHashParams();
 
         var access_token = params.access_token,
             state = params.state,
             storedState = localStorage.getItem(stateKey);
+
+        // To be called by button
+        addToQueue = function(name, artistName, albumName, albumImage, time, uri){
+          // Ajax calls need to be nested because they are asynchronous
+          // Put song in queue
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/queue?uri=' + uri,
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              var item = {
+                songTitle: name,
+                artistName: artistName,
+                albumName: albumName,
+                albumImage: albumImage,
+                time: time,
+                position: queueLength + 1
+              }
+              queue.items.push(item);
+              queuePlaceholder.innerHTML = queueTemplate(queue);
+              queueLength += 1;
+            }
+          });
+        };
 
         if (access_token && (state == null || state !== storedState)) {
           alert('There was an error during the authentication');
@@ -311,27 +353,12 @@
                 $('#songsearch-button').click(function(){
                   var q = $("#query-field").val();
                   $.ajax({
-                    url: 'https://api.spotify.com/v1/search?limit=2&type=track&q=' + q,
+                    url: 'https://api.spotify.com/v1/search?limit=10&type=track&q=' + q,
                     headers: {
                       'Authorization': 'Bearer ' + access_token,
                     },
                     success: function(response) {
                       queryPlaceholder.innerHTML = queryTemplate(response);
-                      var myTemplate = $('#query-template').html();
-                      var compiled = Handlebars.compile(myTemplate);
-
-                      $('#songsearch-button').click(function(){
-                        var q = $("#query-field").val();
-                        $.ajax({
-                          url: 'https://api.spotify.com/v1/search?limit=2&type=track&q=' + q,
-                          headers: {
-                            'Authorization': 'Bearer ' + access_token,
-                          },
-                          success: function(response) {
-                            queryPlaceholder.innerHTML = queryTemplate(response);
-                          }
-                        });
-                      });
                     }
                   });
                 });
@@ -362,7 +389,6 @@
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-                  //console.log(response);
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
                   setTimeout(getSongInfo, 100);
                 }
