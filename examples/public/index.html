@@ -125,14 +125,14 @@
           <th scope="col">Length</th>
           <th scope="col"></th>
         </tr>
-        {{#each}}
+        {{#each tracks.items}}
         <tr>
-          <td>{{item.name}}</td>
-          <td>{{item.artists.0.name}}</td>
-          <td>{{item.album.name}}</td>
-          <td><img src="{{item.album.images.[0].url}}" width=20/></td>
-          <td>{{formatMilliToMinuteSecond item.duration_ms}}</td>
-          <td><button onlick="addToQueue({{item.uri}})">Add to Queue</button></td>
+          <td>{{name}}</td>
+          <td>{{artists.0.name}}</td>
+          <td>{{album.name}}</td>
+          <td><img src="{{album.images.[0].url}}" width=50/></td>
+          <td>{{formatMilliToMinuteSecond duration_ms}}</td>
+          <td><button onlick="addToQueue({{uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
       </table>
@@ -236,26 +236,18 @@
                 var myTemplate = $('#query-template').html();
                 var compiled = Handlebars.compile(myTemplate);
 
-                console.log(access_token);
                 $('#songsearch-button').click(function(){
                   var q = $("#query-field").val();
-                  console.log("HERE");
-                  console.log(q);
-                  var res;
                   $.ajax({
-                      url: 'https://api.spotify.com/v1/search?q=' + q,
-                      type: 'track',
-                      headers: {
-                        'Authorization': 'Bearer ' + access_token,
-                      },
-                      success: function(response) {
-                        res = response;
-                        //queryPlaceholder.innerHTML = queryTemplate(response);
-
-                      }
+                    url: 'https://api.spotify.com/v1/search?type=track&q=' + q,
+                    headers: {
+                      'Authorization': 'Bearer ' + access_token,
+                    },
+                    success: function(response) {
+                      console.log(response);
+                      queryPlaceholder.innerHTML = queryTemplate(response);
+                    }
                   });
-                  console.log(res);
-                  $("#query").html(compiled(res));
                 });
                   
                 
@@ -338,18 +330,6 @@
           //     }
           //   });
           // }, false);
-
-          $.ajax({
-            url: 'https://api.spotify.com/v1/search?q=test',
-            type: 'track',
-            headers: {
-              'Authorization': 'Bearer ' + access_token,
-            },
-            success: function(response) {
-              console.log(response);
-
-            }
-          });
 
           document.getElementById('login-button').addEventListener('click', function() {
 
