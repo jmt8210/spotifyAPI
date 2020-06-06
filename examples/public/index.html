@@ -200,6 +200,7 @@
           }
           
           document.getElementById('songinfo-button').addEventListener('click', function(){
+            // Ajax calls need to be nested because they are asynchronous
             // Put song in queue
             $.ajax({
               url: 'https://api.spotify.com/v1/me/player/queue?uri=' + /*URI*/ 'spotify:track:6pxElwU80zhjbCC77Vn8EI',
@@ -208,32 +209,29 @@
                 'Authorization': 'Bearer ' + access_token,
               },
               success: function(response) {
-                console.log(response);
+                // Play next song 
+                $.ajax({
+                  url: 'https://api.spotify.com/v1/me/player/next',
+                  type: 'POST',
+                  headers: {
+                    'Authorization': 'Bearer ' + access_token,
+                  },
+                  success: function(response) {
+                    // Skip to milli
+                    $.ajax({
+                      url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + /*offset milli int*/'75000',
+                      type: 'PUT',
+                      headers: {
+                        'Authorization': 'Bearer ' + access_token,
+                      },
+                      success: function(response) {
+                        console.log("Successfully changed song");
+                      }
+                    });
+                  }
+                });
               }
             });
-            // Play next song 
-            $.ajax({
-              url: 'https://api.spotify.com/v1/me/player/next',
-              type: 'POST',
-              headers: {
-                'Authorization': 'Bearer ' + access_token,
-              },
-              success: function(response) {
-                console.log(response);
-              }
-            });
-            // Skip to milli
-            $.ajax({
-              url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + /*offset milli int*/'75000',
-              type: 'PUT',
-              headers: {
-                'Authorization': 'Bearer ' + access_token,
-              },
-              success: function(response) {
-                console.log(response);
-              }
-            });
-
           }, false);
 
           document.getElementById('login-button').addEventListener('click', function() {
