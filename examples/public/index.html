@@ -186,7 +186,7 @@
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-                  //console.log(response);
+                  console.log(response);
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
                   setTimeout(getSongInfo, 100);
                 }
@@ -203,7 +203,7 @@
             // Ajax calls need to be nested because they are asynchronous
             // Put song in queue
             $.ajax({
-              url: 'https://api.spotify.com/v1/me/player/queue?uri=' + /*URI*/ 'spotify:track:6pxElwU80zhjbCC77Vn8EI',
+              url: 'https://api.spotify.com/v1/me/player/queue?uri=' + /*URI*/ 'spotify:track:4A7DUET5H4f7dJkUhjfVFB',
               type: 'POST',
               headers: {
                 'Authorization': 'Bearer ' + access_token,
