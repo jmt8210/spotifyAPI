@@ -4,7 +4,6 @@
     <title>SpotiFriend</title>
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     
     
@@ -36,8 +35,11 @@
         </div>
       </div>
       <div id="song">
+        <!-- Previous button -->
+        <!-- <button onclick="previousSong()">Prev</button> -->
         <div id="songinfo">
         </div>
+        <!-- Next button -->
       </div>
       <div id="queue">
 
@@ -141,6 +143,7 @@
     
     <script>
       var addToQueue;
+      var previousSong;
       (function() {
 
         var stateKey = 'spotify_auth_state';
@@ -188,6 +191,10 @@
             }
           });
         };
+
+        previousSong = function(){
+          // Put ajax call
+        }
 
         Handlebars.registerHelper('json', function(context) {
             return JSON.stringify(context).replace(/"/g, '\"');
