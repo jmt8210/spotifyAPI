@@ -105,14 +105,14 @@
           <th scope="col">Artwork</th>
           <th scope="col">Length</th>
         </tr>
-        {{#each}}
+        {{#each items}}
         <tr>
           <td>{{position}}</td>
-          <td>{{name}}</td>
-          <td>{{artists.0.name}}</td>
-          <td>{{album.name}}</td>
-          <td><img src="{{album.images.[0].url}}" width=50/></td>
-          <td>{{formatMilliToMinuteSecond duration_ms}}</td>
+          <td>{{songTitle}}</td>
+          <td>{{artistName}}</td>
+          <td>{{albumName}}</td>
+          <td><img src="{{albumImage}}" width=50/></td>
+          <td>{{time}}</td>
         </tr>
         {{/each}}
       </table>
@@ -139,7 +139,7 @@
     <script id="songsearch-template" type="text/x-handlebars-template">
       <h1>Add to Queue</h1>
       <input id="query-field" type="text">
-      <button onclick="{{query}}" id="songsearch-button" class="btn btn-primary">Search</button>
+      <button id="songsearch-button" class="btn btn-primary">Search</button>
     </script>
 
     <script id="query-template" type="text/x-handlebars-template">
@@ -159,19 +159,19 @@
           <td>{{album.name}}</td>
           <td><img src="{{album.images.[0].url}}" width=50/></td>
           <td>{{formatMilliToMinuteSecond duration_ms}}</td>
-          <td><button onclick="addToQueue({{json uri}})">search</button></td>
-          <!-- <td><button onclick="addToQueue('name', 'artist', 'album', 'img', 'time', {{json uri}} )">search</button></td> -->
-          <!-- <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{json formatMilliToMinuteSecond duration_ms}}, {{json uri}})">Add to Queue</button></td> -->
+          <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
+        
       </table>
     </script>
-
     
     <script>
       var addToQueue;
       var previousSong;
-      var queue;
+      var queue = {
+        items: []
+      };
       var queueLength = 0;
       (function() {
 
@@ -207,13 +207,17 @@
         };
 
 
+        Handlebars.registerHelper('json', function(context) {
+          return JSON.stringify(context).replace(/"/g, '\"');
+        });
+
+        
+
+
         previousSong = function(){
           // Put ajax call
         }
 
-        Handlebars.registerHelper('json', function(context) {
-            return JSON.stringify(context).replace(/"/g, '\"');
-        });
 
 
         // Formating for time with handlebars
@@ -224,6 +228,16 @@
             seconds = "0" + seconds;
           }
           return '' + minutes + ":" + seconds;
+        });
+        // Formating for time with handlebars
+        Handlebars.registerHelper('formatTimeQueue', function(value) {
+          var minutes = parseInt(value/60000);;
+          var seconds = parseInt((value-minutes*60000)/1000);
+          if(seconds < 10){
+            seconds = "0" + seconds;
+          }
+          var out = '' + minutes + ":" + seconds;
+          return JSON.stringify(out).replace(/"/g, '\"');;
         });
 
         // Play next song 
@@ -293,7 +307,7 @@
             storedState = localStorage.getItem(stateKey);
 
         // To be called by button
-        addToQueue = function(/*name, artistName, albumName, albumImage, time,*/ uri){
+        addToQueue = function(name, artistName, albumName, albumImage, time, uri){
           // Ajax calls need to be nested because they are asynchronous
           // Put song in queue
           $.ajax({
@@ -311,7 +325,8 @@
                 time: time,
                 position: queueLength + 1
               }
-              queue.push(item)
+              queue.items.push(item);
+              queuePlaceholder.innerHTML = queueTemplate(queue);
               queueLength += 1;
             }
           });
@@ -338,27 +353,12 @@
                 $('#songsearch-button').click(function(){
                   var q = $("#query-field").val();
                   $.ajax({
-                    url: 'https://api.spotify.com/v1/search?limit=2&type=track&q=' + q,
+                    url: 'https://api.spotify.com/v1/search?limit=10&type=track&q=' + q,
                     headers: {
                       'Authorization': 'Bearer ' + access_token,
                     },
                     success: function(response) {
                       queryPlaceholder.innerHTML = queryTemplate(response);
-                      var myTemplate = $('#query-template').html();
-                      var compiled = Handlebars.compile(myTemplate);
-
-                      $('#songsearch-button').click(function(){
-                        var q = $("#query-field").val();
-                        $.ajax({
-                          url: 'https://api.spotify.com/v1/search?limit=2&type=track&q=' + q,
-                          headers: {
-                            'Authorization': 'Bearer ' + access_token,
-                          },
-                          success: function(response) {
-                            queryPlaceholder.innerHTML = queryTemplate(response);
-                          }
-                        });
-                      });
                     }
                   });
                 });
@@ -389,7 +389,6 @@
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-                  //console.log(response);
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
                   setTimeout(getSongInfo, 100);
                 }
