@@ -132,7 +132,7 @@
           <td>{{album.name}}</td>
           <td><img src="{{album.images.[0].url}}" width=50/></td>
           <td>{{formatMilliToMinuteSecond duration_ms}}</td>
-          <td><button onlick="addToQueue({{uri}})">Add to Queue</button></td>
+          <td><button onlick="{{addToQueue uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
       </table>
@@ -181,6 +181,50 @@
             seconds = "0" + seconds;
           }
           return '' + minutes + ":" + seconds;
+        });
+
+        // To be called by button
+        Handlebars.registerHelper('addToQueue', function(uri){
+          
+          // Ajax calls need to be nested because they are asynchronous
+          // Put song in queue
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/queue?uri=' + uri,
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response)
+            }
+          });
+        });
+
+        // Play next song 
+        Handlebars.registerHelper('playNext', function() {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/next',
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response)
+            }
+          });
+        });
+
+        Handlebars.registerHelper('scrubToOffset', function(offset){
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + offset.toString(),
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log("Successfully changed song");
+            }
+          });
         });
        
 
@@ -239,12 +283,11 @@
                 $('#songsearch-button').click(function(){
                   var q = $("#query-field").val();
                   $.ajax({
-                    url: 'https://api.spotify.com/v1/search?type=track&q=' + q,
+                    url: 'https://api.spotify.com/v1/search?limit=2&type=track&q=' + q,
                     headers: {
                       'Authorization': 'Bearer ' + access_token,
                     },
                     success: function(response) {
-                      console.log(response);
                       queryPlaceholder.innerHTML = queryTemplate(response);
                     }
                   });
@@ -294,42 +337,7 @@
           // Old working button listener
           // document.getElementById('songinfo-button').addEventListener('click', function(){
           
-          // To be called by button
-          // var addToQueue = function(uri){
           
-          //   // Ajax calls need to be nested because they are asynchronous
-          //   // Put song in queue
-          //   $.ajax({
-          //     url: 'https://api.spotify.com/v1/me/player/queue?uri=' + /*URI*/ 'spotify:track:4A7DUET5H4f7dJkUhjfVFB',
-          //     type: 'POST',
-          //     headers: {
-          //       'Authorization': 'Bearer ' + access_token,
-          //     },
-          //     success: function(response) {
-          //       // Play next song 
-          //       $.ajax({
-          //         url: 'https://api.spotify.com/v1/me/player/next',
-          //         type: 'POST',
-          //         headers: {
-          //           'Authorization': 'Bearer ' + access_token,
-          //         },
-          //         success: function(response) {
-          //           // Skip to milli
-          //           $.ajax({
-          //             url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + /*offset milli int*/'75000',
-          //             type: 'PUT',
-          //             headers: {
-          //               'Authorization': 'Bearer ' + access_token,
-          //             },
-          //             success: function(response) {
-          //               console.log("Successfully changed song");
-          //             }
-          //           });
-          //         }
-          //       });
-          //     }
-          //   });
-          // }, false);
 
           document.getElementById('login-button').addEventListener('click', function() {
 
