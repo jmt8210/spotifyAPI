@@ -8,7 +8,7 @@
 
 
     <style type="text/css">
-      #login, #loggedin, #song, #nav, #search {
+      #login, #loggedin, #song, #nav, #search, #queue {
         display: none;
       }
       .text-overflow {
@@ -34,7 +34,7 @@
         <div id="oauth">
         </div>
       </div>
-      <div id="song">
+      <div style="float:left; width:25%" id="song">
         <!-- <button onclick="previousSong()">Prev</button> -->
         <div id="songinfo">
         </div>
@@ -44,11 +44,11 @@
           <button id="pause-btn" class="btn btn-primary">Pause</button>
           <button id="next-btn" class="btn btn-primary">Next Song</button>
         </div>
-
       </div>
-      <div id="queue">
+      <div style="float:left; width:37%" id="queue">
+        <h2>Queue</h2>
       </div>
-      <div id="search">
+      <div style="float:left; margin:10px; width:35%" id="search">
         <div id="songsearch">
         </div>
         <div id="query">
@@ -101,7 +101,7 @@
 
     <script id="queue-template" type="text/x-handlebars-template">
       <h2>Queue</h2>
-      <table class=table>
+      <table class="table">
         <tr>
           <th scope="col">#</th>
           <th scope="col">Title</th>
@@ -127,22 +127,16 @@
 
 
     <script id="songinfo-template" type="text/x-handlebars-template">
-      <div class="text-center">
-        <main role="main">
-          <div class="container">
-            <h2>Current Song Info</h2>
-            <img src="{{item.album.images.[0].url}}" width=256/>
-            <p><b>Song</b><br/>{{item.name}}<br/>
-            <b>Artist</b><br/>{{item.artists.0.name}}<br/>
-            <b>Album</b><br/>{{item.album.name}}<br/>
-            <b>Time</b><br/>{{formatMilliToMinuteSecond progress_ms}}/{{formatMilliToMinuteSecond item.duration_ms}}<br/>
-          </div>
-        </main>
-      </div>
+      <h2>Current Song Info</h2>
+      <img src="{{item.album.images.[0].url}}" width=256/>
+      <p><b>Song</b><br/>{{item.name}}<br/>
+      <b>Artist</b><br/>{{item.artists.0.name}}<br/>
+      <b>Album</b><br/>{{item.album.name}}<br/>
+      <b>Time</b><br/>{{formatMilliToMinuteSecond progress_ms}}/{{formatMilliToMinuteSecond item.duration_ms}}<br/>
     </script>
 
     <script id="songsearch-template" type="text/x-handlebars-template">
-      <h1>Add to Queue</h1>
+      <h2>Add to Queue</h2>
       <input id="query-field" type="text">
       <button id="songsearch-button" class="btn btn-primary">Search</button>
     </script>
@@ -162,7 +156,7 @@
           <td>{{name}}</td>
           <td>{{artists.0.name}}</td>
           <td>{{album.name}}</td>
-          <td><img src="{{album.images.[0].url}}" width=50/></td>
+          <td align="center"><img src="{{album.images.[0].url}}" width=30/></td>
           <td>{{formatMilliToMinuteSecond duration_ms}}</td>
           <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">Add to Queue</button></td>
         </tr>
@@ -337,6 +331,7 @@
               }
               queue.items.push(item);
               queuePlaceholder.innerHTML = queueTemplate(queue);
+              $('#query').hide();
               queueLength += 1;
             }
           });
@@ -361,9 +356,10 @@
                 var compiled = Handlebars.compile(myTemplate);
 
                 $('#songsearch-button').click(function(){
+                  $('#query').show()
                   var q = $("#query-field").val();
                   $.ajax({
-                    url: 'https://api.spotify.com/v1/search?limit=10&type=track&q=' + q,
+                    url: 'https://api.spotify.com/v1/search?limit=5&type=track&q=' + q,
                     headers: {
                       'Authorization': 'Bearer ' + access_token,
                     },
@@ -378,6 +374,8 @@
                 $('#loggedin').hide(); //.show();
                 $('#nav').show();
                 $('#song').show();
+                $('#query').show();
+                $('#queue').show();
                 $('#search').show();
               }
             });
