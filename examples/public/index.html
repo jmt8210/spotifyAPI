@@ -161,7 +161,6 @@
           <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
-<<<<<<< HEAD
 
       </table>
     </script>
@@ -170,15 +169,6 @@
       var addToQueue;
       var previousSong;
       var nextSong;
-=======
-        
-      </table>
-    </script>
-    
-    <script>
-      var addToQueue;
-      var previousSong;
->>>>>>> Fixed queueing UI
       var queue = {
         items: []
       };
@@ -221,24 +211,16 @@
           return JSON.stringify(context).replace(/"/g, '\"');
         });
 
-<<<<<<< HEAD
-
-=======
-        
->>>>>>> Fixed queueing UI
 
 
         previousSong = function(){
           // Put ajax call
         }
 
-<<<<<<< HEAD
         nextSong = function () {
           //TODO
         }
 
-=======
->>>>>>> Fixed queueing UI
 
 
         // Formating for time with handlebars
@@ -348,10 +330,7 @@
               }
               queue.items.push(item);
               queuePlaceholder.innerHTML = queueTemplate(queue);
-<<<<<<< HEAD
               $('#query').hide();
-=======
->>>>>>> Fixed queueing UI
               queueLength += 1;
             }
           });
@@ -379,11 +358,7 @@
                   $('#query').show()
                   var q = $("#query-field").val();
                   $.ajax({
-<<<<<<< HEAD
-                    url: 'https://api.spotify.com/v1/search?limit=5&type=track&q=' + q,
-=======
                     url: 'https://api.spotify.com/v1/search?limit=10&type=track&q=' + q,
->>>>>>> Fixed queueing UI
                     headers: {
                       'Authorization': 'Bearer ' + access_token,
                     },
