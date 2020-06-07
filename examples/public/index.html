@@ -5,8 +5,8 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    
-    
+
+
     <style type="text/css">
       #login, #loggedin, #song, #nav, #search {
         display: none;
@@ -35,11 +35,16 @@
         </div>
       </div>
       <div id="song">
-        <!-- Previous button -->
         <!-- <button onclick="previousSong()">Prev</button> -->
         <div id="songinfo">
         </div>
         <!-- Next button -->
+        <div id="player-controller">
+          <button id="prev-btn" class="btn btn-primary">Prev Song</button>
+          <button id="pause-btn" class="btn btn-primary">Pause</button>
+          <button id="next-btn" class="btn btn-primary">Next Song</button>
+        </div>
+
       </div>
       <div id="queue">
       </div>
@@ -116,10 +121,10 @@
         </tr>
         {{/each}}
       </table>
-      
+
 
     </script>
-    
+
 
     <script id="songinfo-template" type="text/x-handlebars-template">
       <div class="text-center">
@@ -162,13 +167,14 @@
           <td><button onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">Add to Queue</button></td>
         </tr>
         {{/each}}
-        
+
       </table>
     </script>
-    
+
     <script>
       var addToQueue;
       var previousSong;
+      var nextSong;
       var queue = {
         items: []
       };
@@ -211,11 +217,15 @@
           return JSON.stringify(context).replace(/"/g, '\"');
         });
 
-        
+
 
 
         previousSong = function(){
           // Put ajax call
+        }
+
+        nextSong = function () {
+          //TODO
         }
 
 
@@ -240,7 +250,7 @@
           return JSON.stringify(out).replace(/"/g, '\"');;
         });
 
-        // Play next song 
+        // Play next song
         Handlebars.registerHelper('playNext', function() {
           $.ajax({
             url: 'https://api.spotify.com/v1/me/player/next',
@@ -266,7 +276,7 @@
             }
           });
         });
-       
+
 
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
             userProfileTemplate = Handlebars.compile(userProfileSource),
@@ -362,8 +372,8 @@
                     }
                   });
                 });
-                  
-                
+
+
                 $('#login').hide();
                 $('#loggedin').hide(); //.show();
                 $('#nav').show();
@@ -394,19 +404,19 @@
                 }
               });
             }
-            
+
           } else {
               $('#login').show();
               $('#loggedin').hide();
               $('#nav').hide();
               $('#song').hide();
           }
-          
+
 
           // Old working button listener
           // document.getElementById('songinfo-button').addEventListener('click', function(){
-          
-          
+
+
 
           document.getElementById('login-button').addEventListener('click', function() {
 
