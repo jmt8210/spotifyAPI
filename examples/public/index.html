@@ -8,7 +8,7 @@
     
     
     <style type="text/css">
-      #login, #loggedin, #song, #nav, #search {
+      #login, #loggedin, #song, #nav, #search, #queue {
         display: none;
       }
       .text-overflow {
@@ -104,64 +104,75 @@
 
     <script id="queue-template" type="text/x-handlebars-template">
       <h2>Queue</h2>
-      <table class=table>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Title</th>
-          <th scope="col">Aritst</th>
-          <th scope="col">Album</th>
-          <th scope="col">Artwork</th>
-          <th scope="col">Length</th>
-        </tr>
-        {{#each items}}
-        <tr>
-          <td style="vertical-align:middle">{{position}}</td>
-          <td style="vertical-align:middle">{{songTitle}}</td>
-          <td style="vertical-align:middle">{{artistName}}</td>
-          <td style="vertical-align:middle">{{albumName}}</td>
-          <td style="vertical-align:middle"><img src="{{albumImage}}" width=50/></td>
-          <td style="vertical-align:middle">{{time}}</td>
-        </tr>
-        {{/each}}
-      </table>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Title</th>
+              <th scope="col">Aritst</th>
+              <th scope="col">Album</th>
+              <th scope="col">Artwork</th>
+              <th scope="col">Length</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each items}}
+            <tr>
+              <td style="vertical-align:middle">{{position}}</td>
+              <td style="vertical-align:middle">{{songTitle}}</td>
+              <td style="vertical-align:middle">{{artistName}}</td>
+              <td style="vertical-align:middle">{{albumName}}</td>
+              <td style="vertical-align:middle"><img src="{{albumImage}}" width=50/></td>
+              <td style="vertical-align:middle">{{time}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
     </script>
 
     <script id="songinfo-template" type="text/x-handlebars-template">
       <h2>Current Song Info</h2>
       <img src="{{item.album.images.[0].url}}"/>
-      <p><b>Song</b><br/>{{item.name}}<br/>
+      <p><b>Time</b><br/>{{formatMilliToMinuteSecond progress_ms}}/{{formatMilliToMinuteSecond item.duration_ms}}<br/>
+      <b>Song</b><br/>{{item.name}}<br/>
       <b>Artist</b><br/>{{item.artists.0.name}}<br/>
       <b>Album</b><br/>{{item.album.name}}<br/>
-      <b>Time</b><br/>{{formatMilliToMinuteSecond progress_ms}}/{{formatMilliToMinuteSecond item.duration_ms}}<br/>
     </script>
 
     <script id="songsearch-template" type="text/x-handlebars-template">
-      <h1>Add to Queue</h1>
+      <h2>Add to Queue</h2>
       <input id="query-field" type="text">
       <button id="songsearch-button" class="btn btn-primary">Search</button>
     </script>
 
     <script id="query-template" type="text/x-handlebars-template">
-      <table class="table table-dark">
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Aritst</th>
-          <th scope="col">Album</th>
-          <th scope="col">Artwork</th>
-          <th scope="col">Length</th>
-          <th scope="col"></th>
-        </tr>
-        {{#each tracks.items}}
-        <tr class="query" onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">
-          <td style="vertical-align:middle">{{name}}</td>
-          <td style="vertical-align:middle">{{artists.0.name}}</td>
-          <td style="vertical-align:middle">{{album.name}}</td>
-          <td style="vertical-align:middle; text-align:center"><img src="{{album.images.[0].url}}" width=30/></td>
-          <td style="vertical-align:middle">{{formatMilliToMinuteSecond duration_ms}}</td>
-        </tr>
-        {{/each}}
-        
-      </table>
+      <div style="width:100%; height:300px; overflow-x:visible; overflow-y:auto">
+        <table style="overflow-x:visible" class="table fixed-header">
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Aritst</th>
+              <th scope="col">Album</th>
+              <th scope="col">Artwork</th>
+              <th scope="col">Length</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each tracks.items}}
+            <tr class="query" onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">
+              <td style="vertical-align:middle">{{name}}</td>
+              <td style="vertical-align:middle">{{artists.0.name}}</td>
+              <td style="vertical-align:middle">{{album.name}}</td>
+              <td style="vertical-align:middle; text-align:center"><img src="{{album.images.[0].url}}" width=30/></td>
+              <td style="vertical-align:middle">{{formatMilliToMinuteSecond duration_ms}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
     </script>
     
     <script>
@@ -366,6 +377,7 @@
                 $('#loggedin').hide(); //.show();
                 $('#nav').show();
                 $('#song').show();
+                $('#queue').show();
                 $('#search').show();
               }
             });
