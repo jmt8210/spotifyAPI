@@ -40,9 +40,10 @@
         </div>
         <!-- Next button -->
         <div id="player-controller">
-          <button id="prev-btn" class="btn btn-primary">Prev Song</button>
-          <button id="pause-btn" class="btn btn-primary">Pause</button>
-          <button id="next-btn" class="btn btn-primary">Next Song</button>
+          <button id="prev-btn" class="btn btn-primary" onclick = "previousSong()">Prev Song</button>
+          <button id="play-btn" class="btn btn-primary" onclick = "play()">Play</button>
+          <button id="pause-btn" class="btn btn-primary" onclick = "pause()">Pause</button>
+          <button id="next-btn" class="btn btn-primary" onclick = "nextSong()">Next Song</button>
         </div>
 
       </div>
@@ -173,6 +174,8 @@
 
     <script>
       var addToQueue;
+      var pause;
+      var play;
       var previousSong;
       var nextSong;
       var queue = {
@@ -218,14 +221,58 @@
         });
 
 
+        play = function() {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/play',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
 
+
+        pause = function () {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/pause',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
 
         previousSong = function(){
-          // Put ajax call
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/previous',
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
         }
 
         nextSong = function () {
-          //TODO
+          // Play next song
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/next',
+              type: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
         }
 
 
