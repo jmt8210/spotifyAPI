@@ -52,10 +52,10 @@
         <button id="next-btn" class="btn btn-primary">Next Song</button>
       </div>
     </div>
-    <div style="float:left; width:35%; min-height:507px" id="queue">
+    <div style="float:left; width:500px; margin-left:3%; min-height:507px" id="queue">
       <h2>Queue</h2>
     </div>
-    <div style="float:left; width:37%; margin:10px; height:100%; overflow-x:visible" id="search">
+    <div style="float:left; width:500px; margin-left:3%; height:100%; overflow-x:visible" id="search">
       <div id="songsearch">
       </div>
       <div style="overflow-x:visible"id="query">
@@ -164,7 +164,7 @@
           <tbody>
             {{#each tracks.items}}
             <tr class="query" onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">
-              <td style="vertical-align:middle; text-align:center"><img src="{{album.images.[0].url}}" width=200/></td>
+              <td style="vertical-align:middle; text-align:center"><img src="{{album.images.[0].url}}" width=100/></td>
               <td style="vertical-align:middle">{{name}}</td>
               <td style="vertical-align:middle">{{artists.0.name}}</td>
               <td style="vertical-align:middle">{{album.name}}</td>
