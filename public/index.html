@@ -41,21 +41,22 @@
       <div id="oauth">
       </div>
     </div>
-    <div style="float:left; width:25%; height:100%; margin:0%" id="song">
+    <div style="float:left; width:25%; margin-left:2%" id="song">
       <!-- <button onclick="previousSong()">Prev</button> -->
       <div id="songinfo">
       </div>
       <!-- Next button -->
       <div id="player-controller">
-        <button id="prev-btn" class="btn btn-primary">Prev Song</button>
-        <button id="pause-btn" class="btn btn-primary">Pause</button>
-        <button id="next-btn" class="btn btn-primary">Next Song</button>
+        <button id="prev-btn" class="btn btn-primary" onclick = "previousSong()">Previous</button>
+        <button id="play-btn" class="btn btn-primary" onclick = "play()">Play</button>
+        <button id="pause-btn" class="btn btn-primary" onclick = "pause()">Pause</button>
+        <button id="next-btn" class="btn btn-primary" onclick = "nextSong()">Next</button>
       </div>
     </div>
-    <div style="float:left; width:500px; margin-left:3%; min-height:507px" id="queue">
+    <div style="float:left; width:400px; margin-left:2%; min-height:507px" id="queue">
       <h2>Queue</h2>
     </div>
-    <div style="float:left; width:500px; margin-left:3%; height:100%; overflow-x:visible" id="search">
+    <div style="float:left; width:475px; margin-left:2%; height:100%; overflow-x:visible" id="search">
       <div id="songsearch">
       </div>
       <div style="overflow-x:visible"id="query">
@@ -177,6 +178,8 @@
 
     <script>
       var addToQueue;
+      var pause;
+      var play;
       var previousSong;
       var nextSong;
       var queue = {
@@ -222,13 +225,58 @@
         });
 
 
+        play = function() {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/play',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
+
+
+        pause = function () {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/pause',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
 
         previousSong = function(){
-          // Put ajax call
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/previous',
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
         }
 
         nextSong = function () {
-          //TODO
+          // Play next song
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/next',
+              type: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
         }
 
 
@@ -417,6 +465,7 @@
               $('#loggedin').hide();
               $('#nav').hide();
               $('#song').hide();
+              $('#player-controller').hide();
           }
 
 
