@@ -1,0 +1,499 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SpotiFriend</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+
+    <style type="text/css">
+      #login, #loggedin, #song, #nav, #search, #queue {
+        display: none;
+      }
+      .text-overflow {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 500px;
+      }
+      tr.query:hover{
+        background-color:#DDD;
+        cursor:pointer;
+      }
+      img{
+        max-width: 90%;
+        height: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="nav">
+    </div>
+    <div id="login">
+      <h1>Authentication</h1>
+      <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
+    </div>
+    <div id="loggedin">
+      <div id="user-profile">
+      </div>
+      <div id="oauth">
+      </div>
+    </div>
+    <div style="float:left; width:25%; margin-left:2%" id="song">
+      <!-- <button onclick="previousSong()">Prev</button> -->
+      <div id="songinfo">
+      </div>
+      <!-- Next button -->
+      <div id="player-controller">
+        <button id="prev-btn" class="btn btn-primary" onclick = "previousSong()">Previous</button>
+        <button id="play-btn" class="btn btn-primary" onclick = "play()">Play</button>
+        <button id="pause-btn" class="btn btn-primary" onclick = "pause()">Pause</button>
+        <button id="next-btn" class="btn btn-primary" onclick = "nextSong()">Next</button>
+      </div>
+    </div>
+    <div style="float:left; width:400px; margin-left:2%; min-height:507px" id="queue">
+      <h2>Queue</h2>
+    </div>
+    <div style="float:left; width:475px; margin-left:2%; height:100%; overflow-x:visible" id="search">
+      <div id="songsearch">
+      </div>
+      <div style="overflow-x:visible"id="query">
+      </div>
+    </div>
+
+    <script id="nav-template" type="text/x-handlebars-template">
+      <nav class="navbar navbar-default navbar-dark bg-dark">
+        <a class="navbar-brand">SpotiFriend</a>
+        <img style="float:right" width=50px src="{{images.0.url}}"/>
+      </nav>
+    </script>
+
+    <script id="user-profile-template" type="text/x-handlebars-template">
+      <h1>Logged in as {{display_name}}</h1>
+      <div class="media">
+        <div class="pull-left">
+          <img class="media-object" width="150" src="{{images.0.url}}" />
+        </div>
+        <div class="media-body">
+          <dl class="dl-horizontal">
+            <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
+            <dt>Id</dt><dd>{{id}}</dd>
+            <dt>Email</dt><dd>{{email}}</dd>
+            <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
+            <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
+            <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
+            <dt>Country</dt><dd>{{country}}</dd>
+          </dl>
+        </div>
+      </div>
+    </script>
+
+    <script id="oauth-template" type="text/x-handlebars-template">
+      <h2>oAuth info</h2>
+      <dl class="dl-horizontal">
+        <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
+      </dl>
+    </script>
+
+    <script id="following-template" type="text/x-handlebars-template">
+      <h2>Following List</h2>
+      <ul class="dl-horizontal">
+        {{#each people}}
+        <li><a onClick="">{{name}}</a></li>
+        {{/each}}
+      </ul>
+    </script>
+
+    <script id="queue-template" type="text/x-handlebars-template">
+      <h2>Queue</h2>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Title</th>
+              <th scope="col">Aritst</th>
+              <th scope="col">Album</th>
+              <th scope="col">Artwork</th>
+              <th scope="col">Length</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each items}}
+            <tr>
+              <td style="vertical-align:middle">{{position}}</td>
+              <td style="vertical-align:middle">{{songTitle}}</td>
+              <td style="vertical-align:middle">{{artistName}}</td>
+              <td style="vertical-align:middle">{{albumName}}</td>
+              <td style="vertical-align:middle"><img src="{{albumImage}}" width=50/></td>
+              <td style="vertical-align:middle">{{time}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </script>
+
+    <script id="songinfo-template" type="text/x-handlebars-template">
+      <h2>Current Song Info</h2>
+      <img src="{{item.album.images.[0].url}}"/>
+      <p><b>Time</b><br/>{{formatMilliToMinuteSecond progress_ms}}/{{formatMilliToMinuteSecond item.duration_ms}}<br/>
+      <b>Song</b><br/>{{item.name}}<br/>
+      <b>Artist</b><br/>{{item.artists.0.name}}<br/>
+      <b>Album</b><br/>{{item.album.name}}<br/>
+    </script>
+
+    <script id="songsearch-template" type="text/x-handlebars-template">
+      <h2>Add to Queue</h2>
+      <input id="query-field" type="text">
+      <button id="songsearch-button" class="btn btn-primary">Search</button>
+    </script>
+
+    <script id="query-template" type="text/x-handlebars-template">
+      <div style="max-width:95%; height:400px; overflow-x:visible; overflow-y:scroll">
+        <table style="overflow-x:visible" class="table fixed-header">
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Title</th>
+              <th scope="col">Aritst</th>
+              <th scope="col">Album</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each tracks.items}}
+            <tr class="query" onclick="addToQueue({{json name}}, {{json artists.[0].name}}, {{json album.name}}, {{json album.images.[0].url}}, {{formatTimeQueue duration_ms}}, {{json uri}})">
+              <td style="vertical-align:middle; text-align:center"><img src="{{album.images.[0].url}}" width=100/></td>
+              <td style="vertical-align:middle">{{name}}</td>
+              <td style="vertical-align:middle">{{artists.0.name}}</td>
+              <td style="vertical-align:middle">{{album.name}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </script>
+
+    <script>
+      var addToQueue;
+      var pause;
+      var play;
+      var previousSong;
+      var nextSong;
+      var queue = {
+        items: []
+      };
+      var queueLength = 0;
+      (function() {
+
+        var stateKey = 'spotify_auth_state';
+
+        /**
+         * Obtains parameters from the hash of the URL
+         * @return Object
+         */
+        function getHashParams() {
+          var hashParams = {};
+          var e, r = /([^&;=]+)=?([^&;]*)/g,
+              q = window.location.hash.substring(1);
+          while ( e = r.exec(q)) {
+             hashParams[e[1]] = decodeURIComponent(e[2]);
+          }
+          return hashParams;
+        }
+
+        /**
+         * Generates a random string containing numbers and letters
+         * @param  {number} length The length of the string
+         * @return {string} The generated string
+         */
+        function generateRandomString(length) {
+          var text = '';
+          var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+          for (var i = 0; i < length; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+          }
+          return text;
+        };
+
+
+        Handlebars.registerHelper('json', function(context) {
+          return JSON.stringify(context).replace(/"/g, '\"');
+        });
+
+
+        play = function() {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/play',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
+
+
+        pause = function () {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/pause',
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
+
+        previousSong = function(){
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/previous',
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        }
+
+        nextSong = function () {
+          // Play next song
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me/player/next',
+              type: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + access_token,
+              },
+              success: function(response) {
+                console.log(response);
+              }
+            });
+        }
+
+
+
+        // Formating for time with handlebars
+        Handlebars.registerHelper('formatMilliToMinuteSecond', function(value) {
+          var minutes = parseInt(value/60000);;
+          var seconds = parseInt((value-minutes*60000)/1000);
+          if(seconds < 10){
+            seconds = "0" + seconds;
+          }
+          return '' + minutes + ":" + seconds;
+        });
+        // Formating for time with handlebars
+        Handlebars.registerHelper('formatTimeQueue', function(value) {
+          var minutes = parseInt(value/60000);;
+          var seconds = parseInt((value-minutes*60000)/1000);
+          if(seconds < 10){
+            seconds = "0" + seconds;
+          }
+          var out = '' + minutes + ":" + seconds;
+          return JSON.stringify(out).replace(/"/g, '\"');;
+        });
+
+        // Play next song
+        Handlebars.registerHelper('playNext', function() {
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/next',
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log(response);
+            }
+          });
+        });
+
+        Handlebars.registerHelper('scrubToOffset', function(offset){
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/seek?position_ms=' + offset.toString(),
+            type: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              console.log("Successfully changed song");
+            }
+          });
+        });
+
+
+        var userProfileSource = document.getElementById('user-profile-template').innerHTML,
+            userProfileTemplate = Handlebars.compile(userProfileSource),
+            userProfilePlaceholder = document.getElementById('user-profile');
+
+            navSource = document.getElementById('nav-template').innerHTML,
+            navTemplate = Handlebars.compile(navSource),
+            navPlaceholder = document.getElementById('nav');
+
+            oauthSource = document.getElementById('oauth-template').innerHTML,
+            oauthTemplate = Handlebars.compile(oauthSource),
+            oauthPlaceholder = document.getElementById('oauth');
+
+            followingSource = document.getElementById('following-template').innerHTML,
+            followingTemplate = Handlebars.compile(followingSource),
+            followingPlaceholder = document.getElementById('following');
+
+            songinfoSource = document.getElementById('songinfo-template').innerHTML,
+            songinfoTemplate = Handlebars.compile(songinfoSource),
+            songinfoPlaceholder = document.getElementById('songinfo');
+
+            songsearchSource = document.getElementById('songsearch-template').innerHTML,
+            songsearchTemplate = Handlebars.compile(songsearchSource),
+            songsearchPlaceholder = document.getElementById('songsearch');
+
+            querySource = document.getElementById('query-template').innerHTML,
+            queryTemplate = Handlebars.compile(querySource),
+            queryPlaceholder = document.getElementById('query');
+
+            queueSource = document.getElementById('queue-template').innerHTML,
+            queueTemplate = Handlebars.compile(queueSource),
+            queuePlaceholder = document.getElementById('queue');
+
+        var params = getHashParams();
+
+        var access_token = params.access_token,
+            state = params.state,
+            storedState = localStorage.getItem(stateKey);
+
+        // To be called by button
+        addToQueue = function(name, artistName, albumName, albumImage, time, uri){
+          // Ajax calls need to be nested because they are asynchronous
+          // Put song in queue
+          $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/queue?uri=' + uri,
+            type: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + access_token,
+            },
+            success: function(response) {
+              var item = {
+                songTitle: name,
+                artistName: artistName,
+                albumName: albumName,
+                albumImage: albumImage,
+                time: time,
+                position: queueLength + 1
+              }
+              queue.items.push(item);
+              queuePlaceholder.innerHTML = queueTemplate(queue);
+              $('#query').hide();
+              queueLength += 1;
+            }
+          });
+        };
+
+        if (access_token && (state == null || state !== storedState)) {
+          alert('There was an error during the authentication');
+        } else {
+          localStorage.removeItem(stateKey);
+          if (access_token) {
+            $.ajax({
+              url: 'https://api.spotify.com/v1/me',
+              headers: {
+                'Authorization': 'Bearer ' + access_token
+              },
+              success: function(response) {
+                userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                navPlaceholder.innerHTML = navTemplate(response);
+                songsearchPlaceholder.innerHTML = songsearchTemplate(response);
+
+                var myTemplate = $('#query-template').html();
+                var compiled = Handlebars.compile(myTemplate);
+
+                $('#songsearch-button').click(function(){
+                  $('#query').show()
+                  var q = $("#query-field").val();
+                  $.ajax({
+                    url: 'https://api.spotify.com/v1/search?limit=10&type=track&q=' + q,
+                    headers: {
+                      'Authorization': 'Bearer ' + access_token,
+                    },
+                    success: function(response) {
+                      queryPlaceholder.innerHTML = queryTemplate(response);
+                    }
+                  });
+                });
+
+
+                $('#login').hide();
+                $('#loggedin').hide(); //.show();
+                $('#nav').show();
+                $('#song').show();
+                $('#query').show();
+                $('#queue').show();
+                $('#search').show();
+              }
+            });
+            // Get following
+            // $.ajax({
+            //     url: 'https://api.spotify.com/v1/me/following?type=user',
+            //     headers: {
+            //       'Authorization': 'Bearer ' + access_token
+            //     },
+            //     success: function(response) {
+            //       console.log(response);
+            //     }
+            //   });
+            getSongInfo();
+            function getSongInfo(){
+              $.ajax({
+                url: 'https://api.spotify.com/v1/me/player',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                success: function(response) {
+                  songinfoPlaceholder.innerHTML = songinfoTemplate(response);
+                  setTimeout(getSongInfo, 100);
+                }
+              });
+            }
+
+          } else {
+              $('#login').show();
+              $('#loggedin').hide();
+              $('#nav').hide();
+              $('#song').hide();
+              $('#player-controller').hide();
+          }
+
+
+          // Old working button listener
+          // document.getElementById('songinfo-button').addEventListener('click', function(){
+
+
+
+          document.getElementById('login-button').addEventListener('click', function() {
+
+            var client_id = '62f9ac81bdea4990a7512556450c2e44'; // Your client id
+            var redirect_uri = 'http://localhost:8080'; // Your redirect uri
+
+            var state = generateRandomString(16);
+
+            localStorage.setItem(stateKey, state);
+            var scope = 'user-read-private user-read-email user-follow-read user-read-playback-state user-modify-playback-state';
+
+            var url = 'https://accounts.spotify.com/authorize';
+            url += '?response_type=token';
+            url += '&client_id=' + encodeURIComponent(client_id);
+            url += '&scope=' + encodeURIComponent(scope);
+            url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+            url += '&state=' + encodeURIComponent(state);
+
+            window.location = url;
+          }, false);
+        }
+      })();
+    </script>
+</html>
