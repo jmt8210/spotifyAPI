@@ -182,6 +182,7 @@
       var play;
       var previousSong;
       var nextSong;
+      var waitTil = Date.now();
       var queue = {
         items: []
       };
@@ -233,7 +234,7 @@
               'Authorization': 'Bearer ' + access_token,
             },
             success: function(response) {
-              console.log(response);
+              // console.log(response);
             }
           });
         }
@@ -247,7 +248,7 @@
               'Authorization': 'Bearer ' + access_token,
             },
             success: function(response) {
-              console.log(response);
+              // console.log(response);
             }
           });
         }
@@ -260,7 +261,7 @@
               'Authorization': 'Bearer ' + access_token,
             },
             success: function(response) {
-              console.log(response);
+              // console.log(response);
             }
           });
         }
@@ -274,7 +275,9 @@
                 'Authorization': 'Bearer ' + access_token,
               },
               success: function(response) {
-                console.log(response);
+                $('#player-controller').hide();
+                setTimeout(function(){$('#player-controller').show()}, 2000);
+                // console.log(response);
               }
             });
         }
@@ -310,7 +313,7 @@
               'Authorization': 'Bearer ' + access_token,
             },
             success: function(response) {
-              console.log(response);
+              // console.log(response);
             }
           });
         });
@@ -323,7 +326,7 @@
               'Authorization': 'Bearer ' + access_token,
             },
             success: function(response) {
-              console.log("Successfully changed song");
+              // console.log("Successfully changed song");
             }
           });
         });
@@ -455,9 +458,21 @@
                 },
                 success: function(response) {
                   songinfoPlaceholder.innerHTML = songinfoTemplate(response);
+                  if(waitTil < Date.now() && Array.isArray(queue.items) && queue.items.length && response.progress_ms <= 3000 && response.item.name == queue.items[0].songTitle){
+                    removeFromQueue();
+                    waitTil = new Date(Date.now() + 3000);
+                  }
+                  currentSong = response.item.name;
+                  queuePlaceholder.innerHTML = queueTemplate(queue);
                   setTimeout(getSongInfo, 100);
                 }
               });
+            }
+            function removeFromQueue(){
+              queue.items.shift();
+              for(var i = 0; i < queue.items.length; i++){
+                queue.items[i].position -= 1;
+              }
             }
 
           } else {
